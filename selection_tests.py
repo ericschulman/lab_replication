@@ -16,9 +16,6 @@ from statsmodels.base.model import GenericLikelihoodModel
 from shi_test import *
 
 
-
-
-
 def regular_test(yn, xn, setup_test):
     ll1, grad1, hess1, params1, ll2, grad2, hess2, params2 = setup_test(yn, xn)
     nobs = ll1.shape[0]
@@ -84,28 +81,42 @@ def bootstrap_distr(ll1,grad1,hess1,params1,ll2,grad2,hess2,params2,c=0,trials=5
     #set up test stat   
     omega = np.sqrt((ll1 - ll2).var()*nobs + c*(V*V).sum())
     llr = (ll1 - ll2).sum() +V.sum()/(2)
-    #print('V ----')
-    #print(V.sum()/2)
-    #print('----')
-    return test_stats,variance_stats,llr,omega
+    return test_stats/variance_stats
 
 # TODO 4: Get Bootstrap test working
+def bootstrap_distr_slow(yn,xn,setup_shi,trials=100):
+    nobs = yn.shape[0]
+    yn,xn =np.array(yn),np.array(xn)
 
-def bootstrap_test(yn,xn,setup_test,c=0,trials=500,alpha=.05):
-    ll1,grad1,hess1,params1,ll2,grad2,hess2,params2 = setup_test(yn,xn)
+    test_stats = []
+    bias_correct = []
+    variance_stats  = []
 
-    #set up bootstrap distr
-    test_stats,variance_stats,llr,omega  = bootstrap_distr(ll1,grad1,hess1,params1,ll2,grad2,hess2,params2,c=c,trials=trials)
-    test_stats = test_stats/variance_stats
-    
-    #set up confidence intervals
-    cv_lower = np.percentile(test_stats, 50*alpha, axis=0)
-    cv_upper = np.percentile(test_stats, 100-50*alpha, axis=0)
-    #print('---- bootstrap: llr, omega ----')
-    #print(llr,omega)
-    #print('----')
+    for i in range(trials):
+        subn = nobs
+        np.random.seed()
+        sample  = np.random.choice(np.arange(0,nobs),subn,replace=True)
+        ys,xs = yn[sample],xn[sample]
+        ll1,grad1,hess1,params1,ll2,grad2,hess2,params2 = setup_shi(ys,xs)
+        
+        ####messing around with recentering########
+        #V = compute_eigen2(ll1,grad1,hess1,params1,ll2, grad2,hess2,params2)
+        #bias_correct.append(V.sum()/(2))
+        bias_correct.append(0)
 
-    return  2*(0 >= cv_upper) + 1*(0 <= cv_lower), cv_lower, cv_upper
+        ###################
+
+        llr = (ll1 - ll2).sum() 
+        omega2 = (ll1 - ll2).var()
+        test_stats.append(llr)
+        variance_stats.append((np.sqrt(omega2*nobs)))
+        
+    test_stats = np.array(test_stats)
+    bias_correct = np.array(bias_correct)
+    variance_stats= np.array(variance_stats) 
+
+    variance_statsnd = np.clip(variance_stats,.1,100000)
+    return (test_stats + bias_correct)/variance_statsnd
 
 
 def bootstrap_test_distr(test_stats,alpha):
@@ -116,13 +127,16 @@ def bootstrap_test_distr(test_stats,alpha):
     
     
 
-def test_table(yn,xn,setup_test, trials=1000):
+def test_table(yn,xn,setup_test, slow=False, trials=1000):
     
     #bootstrap cv
-    ll1,grad1,hess1,params1,ll2,grad2,hess2,params2 = setup_test(yn,xn)
-    test_stats,variance_stats,llr,omega  = bootstrap_distr(ll1,grad1,hess1,params1,ll2,grad2,hess2,params2,trials=trials)
-    test_stats = test_stats/variance_stats
-    
+    test_stats = None
+    if slow:
+        test_stats = bootstrap_distr_slow(yn,xn,setup_test)
+    else:
+        ll1,grad1,hess1,params1,ll2,grad2,hess2,params2 = setup_test(yn,xn)
+        test_stats = bootstrap_distr(ll1,grad1,hess1,params1,ll2,grad2,hess2,params2,trials=trials)
+
     result_boot, cv_lower1, cv_upper1 = bootstrap_test_distr(test_stats,.1)
     result_boot, cv_lower2, cv_upper2 = bootstrap_test_distr(test_stats,.05)
     result_boot, cv_lower3, cv_upper3 = bootstrap_test_distr(test_stats,.01)
