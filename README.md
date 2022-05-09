@@ -1,6 +1,6 @@
 # Overview
 
-This repo replicates the results from four papers. It also provides stylized empirical examples of testing. These examples appear in [my job market paper](https://drive.google.com/file/d/14FdLzfvJzOyyH0F6itTg2TeE7dgiF9Jd/view).
+This repo replicates the results from four papers. It also provides stylized empirical examples of applying the [Vuong (1989)](https://www.jstor.org/stable/1912557). These examples appear in [my job market paper](https://drive.google.com/file/d/14FdLzfvJzOyyH0F6itTg2TeE7dgiF9Jd/view).
 
 1. Present bias in collective decisions? This is drawn from [this](https://www.aeaweb.org/articles?id=10.1257/aer.104.12.4184) paper.
 2. Selection bias or random? This is drawn from [this](https://www.aeaweb.org/articles?id=10.1257/aer.96.3.847) paper.
@@ -10,9 +10,9 @@ There is a bonus example that did not appear in the paper:
 
 Additionally
 
-The code is organized as follows. The folders `colombia`, `lab_pref`, `lotto`, `dynamics`. The file called `test_results.ipynb` is the file file where the model selection test takes place. `selection_tests.py` is where the different versions of the model selection test are written. This module is imported in each of the seperate ipython notebooks. `shi_test.py` has a python implementation of [Shi (2015)](https://onlinelibrary.wiley.com/doi/abs/10.3982/QE382) as a reference point.
+The code is organized as follows. The folders `colombia`, `lab_pref`, `lotto`, `dynamics`. The file called `test_results.ipynb` is the file file where the model selection test takes place. `selection_tests.py` is where the different versions of the model selection test are written. This module is imported in each of the separate ipython notebooks. `shi_test.py` has a python implementation of [Shi (2015)](https://onlinelibrary.wiley.com/doi/abs/10.3982/QE382) as a reference point.
 
-`selection_tests.py` and `shi_test.py` are designed to be compatible with likelihood models from statsmodels. The `dynamics` example useses a modified version of these files designed to be compabitible with the non-standard implementation of the model. 
+`selection_tests.py` and `shi_test.py` are designed to be compatible with [`GenericLikelihoodModel`](https://www.statsmodels.org/dev/dev/generated/statsmodels.base.model.GenericLikelihoodModel.html) class in [`statsmodels`](https://www.statsmodels.org/stable/index.html). The `dynamics` example uses a modified version of these files designed to be compatible with the non-standard implementation of the model. 
 
 # Lab data present biases
 
@@ -35,4 +35,4 @@ I have a more in depth explanation for the implementation of the rust model in t
 # Lottery in the Netherlands
 
 
-[Kuhn et. al (2011)](https://www.aeaweb.org/articles?id=10.1257/aer.101.5.2226) look at how neighbors income effects your expenditure. The code for this example is in `lotto`. They use data from the dutch postcode lottery to study whether having a neighbor wins effects various measures of income and expenditure. The economic theory of "Veblen effects" suggests that shocks to neighbors' incomes could also affect one’s own consumption, particularly in conspicuous consumption like buying a car or exterior renovations. Based on the analysis in the paper, the effect of neighbors winning on exterior home renovations is ambiguous. The sign depends on the definition of whether the neighbor won the lottery. Different versions of this variable seem to predict very different effects.  As we can see from Table 6 of the paper (reproduced below), under one definition the effect is slightly positive. Under the other, the effect is slightly negative. 
+[Kuhn et. al (2011)](https://www.aeaweb.org/articles?id=10.1257/aer.101.5.2226) look at how neighbors income effects your expenditure. The code for this example is in `lotto`. They use data from the dutch postcode lottery to study whether having a neighbor wins effects various measures of income and expenditure. The economic theory of "Veblen effects" suggests that shocks to neighbors' incomes could also affect one's own consumption, particularly in conspicuous consumption like buying a car or exterior renovations. Based on the analysis in the paper, the effect of neighbors winning on exterior home renovations is ambiguous. The sign depends on the definition of whether the neighbor won the lottery. Different versions of this variable seem to predict very different effects.  As we can see from Table 6 of the paper (reproduced below), under one definition the effect is slightly positive. Under the other, the effect is slightly negative. 
