@@ -152,9 +152,9 @@ def regular_test(yn, xn, setup_test):
     llr = (ll1 - ll2).sum()
     omega = np.sqrt((ll1 - ll2).var())
     test_stat = llr/(omega*np.sqrt(nobs))
-    print('regular: test, llr, omega ----')
-    print(test_stat, llr, omega)
-    print('---- ')
+    #print('regular: test, llr, omega ----')
+    #print(test_stat, llr, omega)
+    #print('---- ')
     return 1*(test_stat >= 1.96) + 2*(test_stat <= -1.96),test_stat
 
 
@@ -295,3 +295,56 @@ def test_table(yn,xn,setup_test, slow=False, trials=1000):
                                                  cv_lower2,cv_upper2,
                                                  cv_lower3,cv_upper3))
     print('\\bottomrule\n\\end{tabular}\n\\end{center}')
+
+
+
+def test_results(yn,xn,setup_test, slow=False, trials=1000):
+    
+    #bootstrap cv
+    test_stats = None
+    if slow:
+        test_stats = bootstrap_distr_slow(yn,xn,setup_test)
+    else:
+        ll1,grad1,hess1,params1,ll2,grad2,hess2,params2 = setup_test(yn,xn)
+        test_stats = bootstrap_distr(ll1,grad1,hess1,params1,ll2,grad2,hess2,params2,trials=trials)
+
+    result_boot, cv_lower1, cv_upper1 = bootstrap_test_distr(test_stats,.1)
+    result_boot, cv_lower2, cv_upper2 = bootstrap_test_distr(test_stats,.05)
+    result_boot, cv_lower3, cv_upper3 = bootstrap_test_distr(test_stats,.01)
+    
+    #regular result
+    result_class, test_stat = regular_test(yn,xn,setup_test)
+    
+    #shi results
+    result_shi, stat_shi1, cv_shi1= ndVuong(yn,xn,setup_test,alpha=.1)
+    result_shi, stat_shi2, cv_shi2= ndVuong(yn,xn,setup_test,alpha=.05)
+    result_shi, stat_shi3, cv_shi3= ndVuong(yn,xn,setup_test,alpha=.01)
+
+
+    #set things up for the test
+    boot_intervals = [(cv_lower1, cv_upper1), 
+                        (cv_lower2, cv_upper2),
+                        (cv_lower3, cv_upper3)]
+
+    classical_intervals = [(test_stat- 1.645,test_stat+ 1.645),
+                            (test_stat- 1.959,test_stat+ 1.959),
+                            (test_stat- 2.576,test_stat+ 2.576)]
+
+    shi_intervals = [(stat_shi1- cv_shi1, stat_shi1+ cv_shi1),
+                        (stat_shi2- cv_shi2,stat_shi2+ cv_shi2),
+                        (stat_shi3- cv_shi3,stat_shi3+ cv_shi3)]
+    levels = [90,95,99]
+
+    classcial_p = 85
+    shi_p = 85
+    boot_p = 85
+
+    for i in range(3):
+        if (0 <= classical_intervals[i][0] ) or (classical_intervals[i][1] <= 0):
+            classcial_p = levels[i]
+        if (0 <= shi_intervals[i][0]) or (shi_intervals[i][1] <=0):
+            shi_p = levels[i]
+        if (0 <= boot_intervals[i][0] ) or (boot_intervals[i][1] <= 0): 
+            boot_p = levels[i]
+
+    return test_stat,classcial_p,shi_p,boot_p
